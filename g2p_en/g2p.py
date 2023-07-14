@@ -7,6 +7,7 @@ https://www.github.com/kyubyong/g2p
 from nltk import pos_tag
 from nltk.corpus import cmudict
 import nltk
+# from nltk.tokenize import word_tokenize
 from nltk.tokenize import TweetTokenizer
 word_tokenize = TweetTokenizer().tokenize
 import numpy as np
@@ -145,14 +146,14 @@ class G2p(object):
         preds = [self.idx2p.get(idx, "<unk>") for idx in preds]
         return preds
 
-    def __call__(self, text):
+    def __call__(self, text, no_handler=None):
         # preprocessing
         text = unicode(text)
         text = normalize_numbers(text)
         text = ''.join(char for char in unicodedata.normalize('NFD', text)
                        if unicodedata.category(char) != 'Mn')  # Strip accents
         text = text.lower()
-        text = re.sub("[^ a-z'.,?!\-]", "", text)
+        # text = re.sub("[^ a-z'.,?!\-]", "", text)
         text = text.replace("i.e.", "that is")
         text = text.replace("e.g.", "for example")
 
@@ -164,7 +165,10 @@ class G2p(object):
         prons = []
         for word, pos in tokens:
             if re.search("[a-z]", word) is None:
-                pron = [word]
+                if no_handler is None:
+                    pron = [word]
+                else:
+                    pron = no_handler(word)
 
             elif word in self.homograph2features:  # Check homograph
                 pron1, pron2, pos1 = self.homograph2features[word]
